@@ -2,8 +2,8 @@
 
 import threading
 
-from acfun import acfun
-from configs import get_env
+from .acfun import acfun
+from .configs import get_env
 
 _print = print
 mutex = threading.Lock()
@@ -35,5 +35,4 @@ def Checkin():
 
 
 if __name__ == "__main__":
-    # print()
     Checkin()

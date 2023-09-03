@@ -5,8 +5,8 @@ import re
 import requests
 import urllib3
 
-from configs import env_spl, get_env
-from notify import send
+from .configs import env_spl, get_env
+from .notify import send
 
 urllib3.disable_warnings()
 
