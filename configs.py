@@ -1,9 +1,8 @@
-import json
+# -*- coding: utf-8 -*-
 import os
-import re
 
 qd_config = {
-    "Qd_Acfun": "12312:31231&2312:12312",
+    "Qd_Acfun": "",
     "Qd_Baidu": "",
 }
 
