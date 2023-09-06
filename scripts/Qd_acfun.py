@@ -210,7 +210,8 @@ def acfun():
     massages = ""
     _datas = get_env().get("Qd_Acfun")
     if env_spl(_datas) != None:
-        for _check_item in env_spl(_datas):
-            msg = AcFun(check_item={"phone": _check_item[0], "password": _check_item[1]}).main()
+        for check_item in env_spl(_datas):
+            _check_item={"phone": check_item[0], "password": check_item[1]}
+            msg = AcFun(check_item=_check_item).main()
             massages += "\n" + msg
         send("Acfun签到", massages)
