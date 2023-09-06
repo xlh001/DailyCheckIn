@@ -2,8 +2,8 @@
 
 import threading
 
-from .acfun import acfun
-from .configs import get_env
+from scripts.Qd_acfun import acfun
+from configs import get_env
 
 _print = print
 mutex = threading.Lock()
