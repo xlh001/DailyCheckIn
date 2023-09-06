@@ -34,6 +34,5 @@ def env_spl(env: str) -> dict | None:
         date = env.split("&")
         for i in date:
             a = i.split(":")
-            user = {"user": a[0], "pwd": a[1]}
-            user_disk.append(user)
+            user_disk.append(a)
         return user_disk
