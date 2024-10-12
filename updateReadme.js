@@ -67,7 +67,11 @@ function extractTaskNameFromFile(filePath) {
 
     if (resultLine) {
       // 提取等号右侧的部分作为任务名称，并移除多余空格或符号
-      const taskName = resultLine.split("=")[1].trim().replace(/;$/, "");
+      const taskName = resultLine
+        .split("=")[1]
+        .trim()
+        .replace(/;$/, "")
+        .split("】")(0);
       return taskName;
     } else {
       return null; // 未找到任务名称
