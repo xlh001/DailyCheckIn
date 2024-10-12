@@ -11,7 +11,7 @@ node_modules/
 dist/
 
 # 忽略个性化配置文件，如 config.json
-config.json
+config.yml
 
 # 忽略IDE配置文件
 .vscode/
@@ -24,3 +24,4 @@ Thumbs.db
 # 忽略 npm 和 yarn 锁定文件（如果你不需要锁定文件）
 package-lock.json
 yarn.lock
+
