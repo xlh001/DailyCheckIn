@@ -1,3 +1,7 @@
+const axios = require("axios");
+
+let result = "【模板】：";
+
 module.exports = async function (config) {
   // 使用配置执行任务
   console.log("执行任务，使用配置: ", config);
