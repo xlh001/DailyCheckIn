@@ -66,12 +66,18 @@ function extractTaskNameFromFile(filePath) {
       .find((line) => line.includes("let result ="));
 
     if (resultLine) {
-      // 提取等号右侧的部分作为任务名称，并移除多余空格或符号
-      const taskName = resultLine
+      // 提取等号右侧的部分并去除多余符号
+      const rawValue = resultLine
         .split("=")[1]
         .trim()
         .replace(/;$/, "")
-        .split("】")(0);
+        .replace(/^["']|["']$/g, "");
+
+      // 使用正则提取【】中的内容
+      const taskNameMatch = rawValue.match(/【(.*?)】/);
+      const taskName = taskNameMatch ? taskNameMatch[1] : rawValue;
+
+      // console.log(taskName); // 输出：泡芙加速器
       return taskName;
     } else {
       return null; // 未找到任务名称
