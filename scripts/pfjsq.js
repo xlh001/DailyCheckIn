@@ -4,7 +4,7 @@ let result = "【泡芙加速器】：";
 
 class PFJS {
   constructor(config) {
-    this.host = "https://api-admin-js.3dmjiasu.com/";
+    this.host = "https://pf-api-admin-js.3dmjiasu.com/";
     this.token = process.env.PFJSQ_TOKEN || config.pfjsq.token;
 
     // Token 检查逻辑
@@ -13,7 +13,7 @@ class PFJS {
     }
 
     this.headers = {
-      Host: "api-admin-js.3dmjiasu.com",
+      Host: "pf-api-admin-js.3dmjiasu.com",
       "User-Agent":
         "Mozilla/5.0 (Linux; Android 12; M2012K11AC Build/SKQ1.220303.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/107.0.5304.141 Mobile Safari/537.36 XWEB/5169 MMWEBSDK/20221011 MMWEBID/6242 MicroMessenger/8.0.30.2260(0x28001E3B) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android",
       tokentype: "applet",
