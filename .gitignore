@@ -23,5 +23,5 @@ Thumbs.db
 
 # 忽略 npm 和 yarn 锁定文件（如果你不需要锁定文件）
 # package-lock.json
-yarn.lock
+# yarn.lock
 
