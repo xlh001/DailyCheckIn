@@ -6,11 +6,19 @@
   "repository": "https://github.com/xlh001/Qd.git",
   "author": "xlh001",
   "license": "MIT",
+  "scripts": {
+    "prepare": "husky install"
+  },
   "dependencies": {
     "axios": "^1.7.7",
     "base64-js": "^1.5.1",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
     "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "pinst": "^3.0.0",
+    "prettier": "^3.3.3"
   }
 }
