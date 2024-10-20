@@ -472,3 +472,9 @@ xiaobai:
     password: password
   - username: user2
     password: password2
+
+# wps
+wps:
+  cookie:
+    - cookie在这里 -不能取消 空格也要
+    - 多账号继续往下 不需要的请删除

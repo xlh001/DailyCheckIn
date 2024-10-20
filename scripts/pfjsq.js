@@ -3,9 +3,9 @@ const axios = require("axios");
 let result = "【泡芙加速器】：";
 
 class PFJS {
-  constructor(config) {
+  constructor(token) {
     this.host = "https://pf-api-admin-js.3dmjiasu.com/";
-    this.token = process.env.PFJSQ_TOKEN || config.pfjsq.token;
+    this.token = token;
 
     // Token 检查逻辑
     if (!this.token) {
@@ -131,8 +131,10 @@ class PFJS {
 
 // 主程序函数，返回结果
 module.exports = async function (config) {
+  let token = process.env.PFJSQ_TOKEN || config.pfjsq.token;
+  console.log(token);
   try {
-    const pfjs = new PFJS(config); // 使用传入的配置初始化
+    const pfjs = new PFJS(token); // 使用传入的配置初始化
     await pfjs.run();
 
     // 删除末尾的 '||'，避免冗余输出
