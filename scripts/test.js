@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-let result = "【test】：";
+let result = "【tes1t】：";
 
 module.exports = async function (config) {
   // 使用配置执行任务
