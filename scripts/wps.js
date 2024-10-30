@@ -2,7 +2,7 @@ const axios = require("axios");
 const base64 = require("base64-js");
 const { identify } = require("../utils/code");
 
-let result = "【wps_pc】：";
+let result = "【wps_pc】：\n";
 
 class Wps {
   constructor(cookie) {
@@ -184,6 +184,7 @@ class Wps {
 // 主程序函数，返回结果
 module.exports = async function (config) {
   let wps_pc_list = process.env.WPS_TOKEN || config.wps.cookie;
+  let aggregatedLog = ""; // 用于聚合所有token的日志
   for (const mt_token of wps_pc_list) {
     try {
       // 创建 wps 对象
@@ -204,15 +205,14 @@ module.exports = async function (config) {
       await w.getReward(); // 假设 getReward 是异步方法
       await w.getBalance(); // 假设 getBalance 是异步方法
 
-      // 获取并发送日志
-      const log = w.getLog(); // 获取日志
-      //   notify.send("WPS_PC", log.replace(/\n/g, "\\n")); // 替换日志中的换行符并发送通知
-      return log.endsWith("||") ? log.slice(0, -2) : log;
+      // 获取并聚合日志
+      aggregatedLog += w.getLog();
     } catch (error) {
       // 捕获并处理错误
-      console.log(`出错了！详细错误👇错误CK👉${mt_token}`);
+      console.log(`出错了！详细错误👇错误token👉${mt_token}`);
       console.error(`程序运行错误：${error.message}`);
       return `程序运行错误：${error.message}`;
     }
   }
+  return result + (aggregatedLog ? aggregatedLog : "无签到信息");
 };

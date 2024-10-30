@@ -146,6 +146,11 @@ let SMTP_NAME = "";
 //此处填你的PushMe KEY.
 let PUSHME_KEY = "";
 
+// =======================================Qmsg通知设置区域===========================================
+//官方文档：https://qmsg.zendee.cn/docs/start/
+//此处填你的Qmsg KEY.
+let QMSG_KEY = "";
+
 //==========================云端环境变量的判断与接收=========================
 if (process.env.GOTIFY_URL) {
   GOTIFY_URL = process.env.GOTIFY_URL;
@@ -296,6 +301,9 @@ if (process.env.SMTP_NAME) {
 if (process.env.PUSHME_KEY) {
   PUSHME_KEY = process.env.PUSHME_KEY;
 }
+if (process.env.QMSG_KEY) {
+  QMSG_KEY = process.env.QMSG_KEY;
+}
 //==========================云端环境变量的判断与接收=========================
 
 /**
@@ -344,6 +352,7 @@ async function sendNotify(
     aibotkNotify(text, desp), //智能微秘书
     fsBotNotify(text, desp), //飞书机器人
     smtpNotify(text, desp), //SMTP 邮件
+    QmsgNotify(text, desp), //Qmsg
     PushMeNotify(text, desp, params), //PushMe
   ]);
 }
@@ -1145,6 +1154,41 @@ function PushMeNotify(text, desp, params = {}) {
           } else {
             if (data === "success") {
               console.log("PushMe发送通知消息成功🎉\n");
+            } else {
+              console.log(`${data}\n`);
+            }
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve(data);
+        }
+      });
+    } else {
+      resolve();
+    }
+  });
+}
+
+function QmsgNotify(text, desp, params = {}) {
+  return new Promise((resolve) => {
+    if (QMSG_KEY) {
+      const options = {
+        url: `https://qmsg.zendee.cn/jsend/${QMSG_KEY}`,
+        json: { title: text, content: desp, ...params },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout,
+      };
+      $.post(options, (err, resp, data) => {
+        try {
+          if (err) {
+            console.log("QmsgNotify发送通知调用API失败！！\n");
+            console.log(err);
+          } else {
+            if (data === "success") {
+              console.log("Qmsg发送通知消息成功🎉\n");
             } else {
               console.log(`${data}\n`);
             }

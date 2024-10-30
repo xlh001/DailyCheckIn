@@ -1,11 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-const { sendmsg } = require("./sendmsg");
+const { sendNotify } = require("./notifier");
 
 // 通知发送函数
 async function notify(message) {
   try {
-    await sendmsg(message);
+    await sendNotify(message);
     console.log(`通知已发送: ${message}`);
   } catch (error) {
     console.error(`发送通知时发生错误: ${error.message}`);
@@ -55,6 +55,8 @@ async function executeTask(taskName, config) {
 
 // 并行执行多个任务
 async function executeTasks(taskList, config) {
+  const aggregatedResults = []; // 用于聚合任务结果
+
   try {
     const results = await Promise.allSettled(
       taskList.map((taskName) => executeTask(taskName, config))
@@ -65,25 +67,25 @@ async function executeTasks(taskList, config) {
       if (status === "fulfilled") {
         const { success, message } = value;
         logTaskStatus(taskName, success ? "成功" : "失败", message);
+        aggregatedResults.push(message); // 聚合结果
       } else {
         logTaskStatus(taskName, "失败", `原因: ${reason.message}`);
+        aggregatedResults.push({
+          taskName,
+          success: false,
+          message: reason ? reason.message : "任务执行失败",
+        }); // 聚合结果
       }
     });
 
-    return results.map(({ status, value, reason }, idx) => {
-      const taskName = taskList[idx];
-      return status === "fulfilled"
-        ? { taskName, success: value.success, message: value.message }
-        : {
-            taskName,
-            success: false,
-            message: reason ? reason.message : "任务执行失败",
-          };
-    });
+    // 输出聚合结果日志
+    console.log("所有任务执行结果汇总:", aggregatedResults);
+
+    return aggregatedResults; // 返回聚合结果
   } catch (error) {
     const errMsg = `执行任务列表时出错: ${error.message}`;
     console.error(errMsg);
-    await notify(errMsg);
+    await sendNotify(errMsg);
     return taskList.map((taskName) => ({
       taskName,
       success: false,
