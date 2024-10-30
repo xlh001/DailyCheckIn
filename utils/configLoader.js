@@ -33,6 +33,7 @@ async function getRemoteConfig(ycurl) {
       return yaml.load(configData);
     } else {
       console.error("远程配置文件格式不正确");
+      return null; // 添加返回 null
     }
   } catch (error) {
     console.error("获取远程配置文件失败：", error);
