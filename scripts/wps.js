@@ -183,7 +183,7 @@ class Wps {
 
 // 主程序函数，返回结果
 module.exports = async function (config) {
-  let wps_pc_list = config.wps.cookie;
+  let wps_pc_list = process.env.WPS_TOKEN || config.wps.cookie;
   for (const mt_token of wps_pc_list) {
     try {
       // 创建 wps 对象
