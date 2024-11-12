@@ -132,7 +132,7 @@ class PFJS {
 // 主程序函数，返回结果
 module.exports = async function (config) {
   let token = process.env.PFJSQ_TOKEN || config.pfjsq.token;
-  console.log(token);
+  // console.log(token);
   try {
     const pfjs = new PFJS(token); // 使用传入的配置初始化
     await pfjs.run();
