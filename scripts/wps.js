@@ -107,7 +107,7 @@ class Wps {
 }
 
 module.exports = async function (config) {
-  const tokens = process.env.WPS_TOKEN || config.wps.cookie;
+  const tokens = process.env.wps_pc || config.wps.cookie;
   let aggregatedLog = ""; 
 
   for (const token of tokens) {
