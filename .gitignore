@@ -1,0 +1,11 @@
+
+node_modules/*
+
+# QD
+config.yml
+
+# yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
