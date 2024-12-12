@@ -1,6 +1,7 @@
 const axios = require("axios");
 const base64 = require("base64-js");
 const { wps_identify } = require("../utils/code");
+const { logInfo, logError } = require("../utils/logger");
 
 class Wps {
   constructor(cookie) {
@@ -14,6 +15,7 @@ class Wps {
     this.Log = "";
   }
 
+  // 发送 HTTP 请求
   async request(url, method = "GET", data = null, headers = {}) {
     try {
       const response = await axios({
@@ -25,11 +27,15 @@ class Wps {
       });
       return response.data;
     } catch (error) {
-      console.error(`${method} 请求失败: ${error.message}`);
+      logError(`请求失败: ${error.message}`);
+      if (error.response) {
+        logError(`响应状态: ${error.response.status}`);
+      }
       return null;
     }
   }
 
+  // 获取奖励信息
   async getReward() {
     const data = await this.request("https://personal-act.wps.cn/wps_clock/v2");
     if (data?.result === "ok") {
@@ -42,6 +48,7 @@ class Wps {
     }
   }
 
+  // 获取用户信息
   async getUserInfo() {
     const data = await this.request(
       "https://account.wps.cn/p/auth/check",
@@ -55,6 +62,7 @@ class Wps {
     return null;
   }
 
+  // 处理验证码
   async processCaptcha(type = "pc") {
     const userid = await this.getUserInfo();
     if (!userid) return false;
@@ -64,17 +72,23 @@ class Wps {
         ? `https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t=${Date.now()}&request_id=wps_clock_${userid}`
         : `https://vip.wps.cn/checkcode/signin/captcha.png?platform=8&encode=0&img_witdh=336&img_height=84.48&v=${Date.now()}`;
 
-    const response = await axios.get(url, {
-      headers: { Cookie: this.ck },
-      responseType: "arraybuffer",
-    });
-    const code = await wps_identify(
-      type,
-      base64.fromByteArray(new Uint8Array(response.data))
-    );
-    return type === "pc" ? this.submitCheckin(code) : this.submitSpace(code);
+    try {
+      const response = await axios.get(url, {
+        headers: { Cookie: this.ck },
+        responseType: "arraybuffer",
+      });
+      const code = await wps_identify(
+        type,
+        base64.fromByteArray(new Uint8Array(response.data))
+      );
+      return type === "pc" ? this.submitCheckin(code) : this.submitSpace(code);
+    } catch (error) {
+      logError(`获取验证码失败: ${error.message}`);
+      return false;
+    }
   }
 
+  // 提交签到
   async submitCheckin(code) {
     const payload = new URLSearchParams({
       double: "0",
@@ -92,12 +106,14 @@ class Wps {
     return this.handleResponse(data, "今日签到");
   }
 
+  // 提交空间签到
   async submitSpace(code) {
     const url = `https://vip.wps.cn/sign/v2?platform=8&captcha_pos=${code}&img_witdh=336&img_height=84.48`;
     const data = await this.request(url, "POST");
     return this.handleResponse(data, "今日空间签到");
   }
 
+  // 处理 API 响应
   handleResponse(data, action) {
     if (data?.msg === "ClockAgent") {
       this.Log += "🙅你今日已经签到过了！\n";
@@ -111,6 +127,7 @@ class Wps {
     return false;
   }
 
+  // 获取余额
   async getBalance() {
     const data = await this.request("https://vipapi.wps.cn/wps_clock/v2/user");
     if (data?.result === "ok") {
@@ -125,6 +142,7 @@ class Wps {
     }
   }
 
+  // 获取日志
   getLog() {
     return this.Log;
   }
@@ -134,14 +152,15 @@ module.exports = async function (config) {
   const tokens = process.env.wps_pc || config.wps.cookie;
   let aggregatedLog = "";
 
+  // 并行处理多个 token
   for (const token of tokens) {
     const wps = new Wps(token);
     for (let attempt = 1; attempt <= 5; attempt++) {
       if (await wps.processCaptcha()) {
-        console.log(`第${attempt}次签到成功`);
+        logInfo(`第${attempt}次签到成功`);
         break;
       } else {
-        console.log(`第${attempt}次签到失败`);
+        logInfo(`第${attempt}次签到失败`);
       }
     }
 

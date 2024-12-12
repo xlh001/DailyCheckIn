@@ -1,6 +1,5 @@
 const axios = require("axios");
-
-let result = "【云雨】：\n";
+const logger = require("../utils/logger"); // 引入 logger
 
 class RainYun {
   constructor(token) {
@@ -28,9 +27,11 @@ class RainYun {
     try {
       const res = await this.session({ method, url, data });
       if (res.status === 200) return res;
-      console.error(`请求失败: ${method.toUpperCase()} ${url}`);
+      logger.logError(`请求失败: ${method.toUpperCase()} ${url}`);
     } catch (error) {
-      console.error(`请求出错: ${method.toUpperCase()} ${url}`, error.message);
+      logger.logError(
+        `请求出错: ${method.toUpperCase()} ${url} - ${error.message}`
+      );
     }
     return null;
   }
@@ -40,9 +41,9 @@ class RainYun {
     const res = await this.request("post", this.urls.signin, data);
     if (res) {
       this.signinResult = true;
-      console.log("成功签到并领取积分");
+      logger.logInfo("成功签到并领取积分");
     } else {
-      console.log("签到失败");
+      logger.logWarn("签到失败");
     }
   }
 
@@ -51,10 +52,10 @@ class RainYun {
     if (res) {
       this.points = res.data.data.Points || res.data.data.points;
       const name = res.data.data.Name || res.data.data.name;
-      console.log("积分查询成功，积分为", this.points);
+      logger.logInfo(`积分查询成功，积分为 ${this.points}`);
       this.log += `${name}: 当前积分 ${this.points}\n`;
     } else {
-      console.log("积分查询失败");
+      logger.logWarn("积分查询失败");
     }
   }
 
@@ -67,7 +68,7 @@ module.exports = async function (config) {
   const tokens = process.env.YUNYU_TOKEN || config.yunyu.token || "";
 
   if (!tokens) {
-    console.error("❌未添加 YUNYU_TOKEN 变量");
+    logger.logError("❌未添加 YUNYU_TOKEN 变量");
     return;
   }
 
@@ -76,18 +77,21 @@ module.exports = async function (config) {
   for (const token of tokens) {
     try {
       const ry = new RainYun(token);
-      await ry.signin();
-      await ry.query();
+      await ry.signin(); // 执行签到
+      await ry.query(); // 执行积分查询
 
       // 获取并聚合日志
       aggregatedLog += ry.getLog();
     } catch (error) {
       // 捕获并处理错误
-      console.log(`出错了！详细错误👇错误token👉${token}`);
-      console.error(`程序运行错误：${error.message}`);
+      logger.logError(`出错了！详细错误👇错误token👉${token}`);
+      logger.logError(`程序运行错误：${error.message}`);
       return `程序运行错误：${error.message}`;
     }
   }
+
   // 返回聚合的结果
-  return result + (aggregatedLog ? aggregatedLog : "无积分信息");
+  const result =
+    "【云雨】：\n" + (aggregatedLog ? aggregatedLog : "无积分信息");
+  return result;
 };
