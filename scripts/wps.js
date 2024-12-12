@@ -1,6 +1,6 @@
 const axios = require("axios");
 const base64 = require("base64-js");
-const { identify } = require("../utils/code");
+const { wps_identify } = require("../utils/code");
 
 class Wps {
   constructor(cookie) {
@@ -8,7 +8,8 @@ class Wps {
     this.defaultHeaders = {
       Cookie: this.ck,
       Origin: "https://vip.wps.cn",
-      Referer: "https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301",
+      Referer:
+        "https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301",
     };
     this.Log = "";
   }
@@ -42,7 +43,10 @@ class Wps {
   }
 
   async getUserInfo() {
-    const data = await this.request("https://account.wps.cn/p/auth/check", "POST");
+    const data = await this.request(
+      "https://account.wps.cn/p/auth/check",
+      "POST"
+    );
     if (data?.result === "ok") {
       this.Log += `👤用户信息：${data.nickname}\n`;
       return data.userid;
@@ -55,20 +59,36 @@ class Wps {
     const userid = await this.getUserInfo();
     if (!userid) return false;
 
-    const url = type === "pc" 
-      ? `https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t=${Date.now()}&request_id=wps_clock_${userid}`
-      : `https://vip.wps.cn/checkcode/signin/captcha.png?platform=8&encode=0&img_witdh=336&img_height=84.48&v=${Date.now()}`;
+    const url =
+      type === "pc"
+        ? `https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t=${Date.now()}&request_id=wps_clock_${userid}`
+        : `https://vip.wps.cn/checkcode/signin/captcha.png?platform=8&encode=0&img_witdh=336&img_height=84.48&v=${Date.now()}`;
 
-    const response = await axios.get(url, { headers: { Cookie: this.ck }, responseType: "arraybuffer" });
-    const code = await identify(type, base64.fromByteArray(new Uint8Array(response.data)));
+    const response = await axios.get(url, {
+      headers: { Cookie: this.ck },
+      responseType: "arraybuffer",
+    });
+    const code = await wps_identify(
+      type,
+      base64.fromByteArray(new Uint8Array(response.data))
+    );
     return type === "pc" ? this.submitCheckin(code) : this.submitSpace(code);
   }
 
   async submitCheckin(code) {
-    const payload = new URLSearchParams({ double: "0", v: "11.1.0.10314", c: code });
-    const data = await this.request("https://personal-act.wps.cn/wps_clock/v2", "POST", payload, {
-      "Content-Type": "application/x-www-form-urlencoded",
+    const payload = new URLSearchParams({
+      double: "0",
+      v: "11.1.0.10314",
+      c: code,
     });
+    const data = await this.request(
+      "https://personal-act.wps.cn/wps_clock/v2",
+      "POST",
+      payload,
+      {
+        "Content-Type": "application/x-www-form-urlencoded",
+      }
+    );
     return this.handleResponse(data, "今日签到");
   }
 
@@ -96,8 +116,12 @@ class Wps {
     if (data?.result === "ok") {
       const totalHours = Math.floor(data.data.total / 3600);
       const costHours = Math.floor(data.data.cost / 3600);
-      this.Log += `🏦已使用：${costHours}小时 (${Math.floor(costHours / 24)}天)\n`;
-      this.Log += `💰剩余：${totalHours}小时 (${Math.floor(totalHours / 24)}天)\n`;
+      this.Log += `🏦已使用：${costHours}小时 (${Math.floor(
+        costHours / 24
+      )}天)\n`;
+      this.Log += `💰剩余：${totalHours}小时 (${Math.floor(
+        totalHours / 24
+      )}天)\n`;
     }
   }
 
@@ -108,7 +132,7 @@ class Wps {
 
 module.exports = async function (config) {
   const tokens = process.env.wps_pc || config.wps.cookie;
-  let aggregatedLog = ""; 
+  let aggregatedLog = "";
 
   for (const token of tokens) {
     const wps = new Wps(token);
