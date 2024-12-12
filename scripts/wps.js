@@ -1,7 +1,7 @@
-const axios = require("axios");
 const base64 = require("base64-js");
 const { wps_identify } = require("../utils/code");
 const { logInfo, logError } = require("../utils/logger");
+const { request } = require("../utils/request");
 
 class Wps {
   constructor(cookie) {
@@ -18,12 +18,12 @@ class Wps {
   // 发送 HTTP 请求
   async request(url, method = "GET", data = null, headers = {}) {
     try {
-      const response = await axios({
+      const response = await request({
         url,
         method,
         headers: { ...this.defaultHeaders, ...headers },
         data,
-        responseType: method === "POST" ? "arraybuffer" : "json",
+        responseType: method === "POST" ? "arraybuffer" : "json", // 这里使用了适当的响应类型
       });
       return response.data;
     } catch (error) {
@@ -62,7 +62,11 @@ class Wps {
     return null;
   }
 
-  // 处理验证码
+  /**
+   * 处理验证码
+   * @param {*} type
+   * @returns
+   */
   async processCaptcha(type = "pc") {
     const userid = await this.getUserInfo();
     if (!userid) return false;
@@ -73,13 +77,15 @@ class Wps {
         : `https://vip.wps.cn/checkcode/signin/captcha.png?platform=8&encode=0&img_witdh=336&img_height=84.48&v=${Date.now()}`;
 
     try {
-      const response = await axios.get(url, {
+      const response = await request({
+        url,
+        method: "GET",
         headers: { Cookie: this.ck },
         responseType: "arraybuffer",
       });
       const code = await wps_identify(
         type,
-        base64.fromByteArray(new Uint8Array(response.data))
+        base64.fromByteArray(new Uint8Array(response))
       );
       return type === "pc" ? this.submitCheckin(code) : this.submitSpace(code);
     } catch (error) {
@@ -150,7 +156,7 @@ class Wps {
 
 module.exports = async function (config) {
   const tokens = process.env.wps_pc || config.wps.cookie;
-  let aggregatedLog = "";
+  let aggregatedLog = [];
 
   // 并行处理多个 token
   for (const token of tokens) {
@@ -171,5 +177,7 @@ module.exports = async function (config) {
     aggregatedLog += wps.getLog();
   }
 
-  return `【wps_pc】：\n${aggregatedLog || "无签到信息"}`;
+  const result = aggregatedLog.join("\n");
+
+  return result || "【wps_pc】：无任务执行结果";
 };

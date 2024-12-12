@@ -1,12 +1,16 @@
-// utils/logger.js
 const winston = require("winston");
 
 // 创建日志记录器
 const logger = winston.createLogger({
-  level: "info",
+  level: "info", // 默认日志级别，可调整为 debug、warn、error 等
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
+  ),
   transports: [
-    new winston.transports.Console({ format: winston.format.simple() }),
-    new winston.transports.File({ filename: "app.log" }),
+    new winston.transports.Console(), // 仅输出到控制台
   ],
 });
 

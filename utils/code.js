@@ -1,5 +1,6 @@
 const axios = require("axios");
 
+
 // 识别wps验证码函数，根据模式（mo）和验证码图片数据（code）
 async function wps_identify(mo, code) {
   // 校验 mo 是否是有效的模式
