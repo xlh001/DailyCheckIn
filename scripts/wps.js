@@ -5,39 +5,23 @@ const { request } = require("../utils/request");
 
 class Wps {
   constructor(cookie) {
-    this.ck = cookie;
-    this.defaultHeaders = {
-      Cookie: this.ck,
-      Origin: "https://vip.wps.cn",
-      Referer:
-        "https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301",
-    };
+    this.session = axios.create({
+      headers: {
+        Cookie: cookie,
+        Origin: "https://vip.wps.cn",
+        Referer:
+          "https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301",
+      },
+    });
     this.Log = "";
-  }
-
-  // 发送 HTTP 请求
-  async request(url, method = "GET", data = null, headers = {}) {
-    try {
-      const response = await request({
-        url,
-        method,
-        headers: { ...this.defaultHeaders, ...headers },
-        data,
-        responseType: method === "POST" ? "arraybuffer" : "json", // 这里使用了适当的响应类型
-      });
-      return response.data;
-    } catch (error) {
-      logError(`请求失败: ${error.message}`);
-      if (error.response) {
-        logError(`响应状态: ${error.response.status}`);
-      }
-      return null;
-    }
   }
 
   // 获取奖励信息
   async getReward() {
-    const data = await this.request("https://personal-act.wps.cn/wps_clock/v2");
+    const data = await request(
+      this.session,
+      "https://personal-act.wps.cn/wps_clock/v2"
+    );
     if (data?.result === "ok") {
       this.Log += "📝签到日志：\n";
       data.data.list.forEach((item, i) => {
@@ -50,7 +34,8 @@ class Wps {
 
   // 获取用户信息
   async getUserInfo() {
-    const data = await this.request(
+    const data = await request(
+      this.session,
       "https://account.wps.cn/p/auth/check",
       "POST"
     );
@@ -101,7 +86,8 @@ class Wps {
       v: "11.1.0.10314",
       c: code,
     });
-    const data = await this.request(
+    const data = await request(
+      this.session,
       "https://personal-act.wps.cn/wps_clock/v2",
       "POST",
       payload,
@@ -115,7 +101,7 @@ class Wps {
   // 提交空间签到
   async submitSpace(code) {
     const url = `https://vip.wps.cn/sign/v2?platform=8&captcha_pos=${code}&img_witdh=336&img_height=84.48`;
-    const data = await this.request(url, "POST");
+    const data = await request(this.session, url, "POST");
     return this.handleResponse(data, "今日空间签到");
   }
 
@@ -135,7 +121,10 @@ class Wps {
 
   // 获取余额
   async getBalance() {
-    const data = await this.request("https://vipapi.wps.cn/wps_clock/v2/user");
+    const data = await request(
+      this.session,
+      "https://vipapi.wps.cn/wps_clock/v2/user"
+    );
     if (data?.result === "ok") {
       const totalHours = Math.floor(data.data.total / 3600);
       const costHours = Math.floor(data.data.cost / 3600);

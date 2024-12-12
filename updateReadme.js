@@ -49,16 +49,20 @@ async function getFileDetails(file) {
 async function extractTaskNameFromFile(filePath) {
   try {
     const content = await fs.readFile(filePath, "utf-8");
-    const resultLine = content.split("\n").find((line) => line.includes("let result ="));
-    if (resultLine) {
-      const rawValue = resultLine.split("=")[1].trim().replace(/;$/, "").replace(/^["']|["']$/g, "");
-      const taskNameMatch = rawValue.match(/【(.*?)】/);
-      return taskNameMatch ? taskNameMatch[1] : rawValue;
+    // 查找 return 语句
+    const returnLine = content
+      .split("\n")
+      .find((line) => line.includes("return result ||"));
+
+    if (returnLine) {
+      // 提取任务名称部分
+      const match = returnLine.match(/【(.*?)】/);
+      return match ? match[1] : "未找到任务名称"; // 返回括号中的内容
     }
-    return null; // 未找到任务名称
+    return "未找到任务名称"; // 如果没有找到 return 语句，返回默认值
   } catch (error) {
     logError(`读取文件时出错：${filePath}`, error);
-    return null;
+    return "未找到任务名称"; // 错误时返回默认值
   }
 }
 
@@ -68,7 +72,9 @@ function createReadmeContent(scriptDetails) {
     .filter((detail) => detail !== null) // 过滤掉无法读取的文件
     .map(
       (detail) =>
-        `| ${detail.name} | ${detail.task} | ${formatDate(detail.createdAt)} | ${formatDate(detail.updatedAt)} |`
+        `| ${detail.name} | ${detail.task} | ${formatDate(
+          detail.createdAt
+        )} | ${formatDate(detail.updatedAt)} |`
     )
     .join("\n");
 
@@ -87,9 +93,11 @@ ${tableRows}
 
 // 格式化日期为 YYYY-MM-DD HH:MM:SS
 function formatDate(date) {
-  return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(
-    date.getHours()
-  )}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}`;
+  return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(
+    date.getDate()
+  )} ${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(
+    date.getSeconds()
+  )}`;
 }
 
 // 补零函数，确保个位数前面补零
@@ -100,8 +108,11 @@ function padZero(num) {
 // 错误日志记录
 function logError(message, error) {
   console.error(`${message}:`, error);
-  // 可以将错误写入日志文件，而不是仅仅输出到控制台
-  // fs.appendFile("error.log", `${new Date().toISOString()} - ${message}: ${error.stack}\n`);
+  // 将错误记录到日志文件
+  fs.appendFile(
+    "error.log",
+    `${new Date().toISOString()} - ${message}: ${error.stack}\n`
+  );
 }
 
 // 执行生成 README.md 的函数
