@@ -1,30 +1,5 @@
 #任务列表 任务1&任务2
 cbList: ssly&ssly
-#是否需要推送结果 true全部推送  false以及不填只推送失败结果
-needPush: true
-#推送参数
-Push:
-#企业微信推送
-  qywx:
-    corpsecret:
-    corpid:
-    agentid:
-    mediaid:
-#telegram推送
-  tgpushkey:
-    tgbotoken:
-    chatid:
-#server酱turbo版
-  sckey:
-#qmsg酱
-  qmsgkey:
-#推送加
-  pushplustoken:
-#vocechat
-  vocechat: 
-    api: 
-    uid: 
-    key:
 
 #联众打码账号密码https://www.jsdati.com/
 #无对应脚本 仅用于需要打码的时候
@@ -464,3 +439,14 @@ xiaobai:
     password: password
   - username: user2
     password: password2
+
+# 云雨
+yunyu:
+  token:
+    - token在这里 -不能取消 空格也要
+    - 多账号继续往下 不需要的请删除
+
+# wps
+wps:
+  cookie:
+    - cookie在这里 -不能取消 空格也要
