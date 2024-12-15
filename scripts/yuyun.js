@@ -1,5 +1,5 @@
 const axios = require("axios");
-const logger = require("../utils/logger");
+const { logInfo, logWarn, logError } = require("../utils/logger");
 const { request } = require("../utils/request");
 
 class RainYun {
@@ -7,7 +7,7 @@ class RainYun {
     this.token = token.trim();
     this.signinResult = false;
     this.points = null;
-    this.log = ""; // 用于存储日志
+    this.log = []; // 使用数组来存储日志
 
     this.urls = {
       signin: "https://api.v2.rainyun.com/user/reward/tasks",
@@ -22,71 +22,89 @@ class RainYun {
     });
   }
 
-  async signin() {
-    const data = JSON.stringify({ task_name: "每日签到" });
-    const res = await request(this.session, "post", this.urls.signin, data);
-    if (res && res.success) {
-      this.signinResult = true;
-      logger.logInfo("成功签到并领取积分");
-      this.log += `签到成功\n`;
+  async handleRequest(method, url, data = null) {
+    const res = await request(this.session, method, url, data);
+    if (res.success) {
+      logInfo(`${method.toUpperCase()} 请求成功: ${url}`);
+      return res.data;
     } else {
-      logger.logWarn("签到失败");
-      this.log += `签到失败\n`;
+      logWarn(
+        `${method.toUpperCase()} 请求失败: ${url}, 错误详情: ${res.error}`
+      );
+      return null;
+    }
+  }
+
+  async addToLog(message) {
+    this.log.push(message); // 将日志添加到数组中
+  }
+
+  async signin() {
+    try {
+      const data = JSON.stringify({ task_name: "每日签到" });
+      const result = await this.handleRequest("post", this.urls.signin, data);
+      if (result) {
+        this.signinResult = true;
+        await this.addToLog("签到成功");
+      } else {
+        await this.addToLog("签到失败");
+      }
+    } catch (error) {
+      logError("签到失败", error);
+      await this.addToLog("签到失败");
     }
   }
 
   async query() {
-    const res = await request(this.session, "get", this.urls.query);
-    if (res && res.success && res.data && res.data.data) {
-      const name = res.data.data.Name || res.data.data.name || "未知用户";
-      this.points = res.data.data.Points || res.data.data.points || 0;
-      logger.logInfo(`积分查询成功，用户 ${name} 的积分为 ${this.points}`);
-      this.log += `${name}: 当前积分 ${this.points}\n`;
-    } else {
-      logger.logWarn("积分查询失败，未返回有效数据");
-      this.log += `积分查询失败\n`;
+    try {
+      const result = await this.handleRequest("get", this.urls.query);
+      if (result && result.data) {
+        const name = result.data.Name || result.data.name || "未知用户";
+        this.points = result.data.Points || result.data.points || 0;
+        await this.addToLog(`${name}: 当前积分 ${this.points}`);
+      } else {
+        await this.addToLog("积分查询失败");
+      }
+    } catch (error) {
+      logError("积分查询失败", error);
+      await this.addToLog("积分查询失败");
     }
   }
 
   getLog() {
-    return this.log;
+    return this.log.join("\n");
   }
 }
 
 module.exports = async function (config) {
-  const tokens = process.env.YUNYU_TOKEN || config.yunyu.token || "";
+  const envTokens = process.env.YUYUN_token
+    ? process.env.YUYUN_token.split("&")
+    : [];
+  const configTokens = config.yuyun.token ? config.yuyun.token : [];
+  const tokens = [...new Set([...envTokens, ...configTokens])];
 
-  const tokenList = Array.isArray(tokens)
-    ? tokens
-    : tokens
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t);
-
-  if (tokenList.length === 0) {
-    logger.logError("❌ 未提供有效的 YUNYU_TOKEN");
+  if (tokens.length === 0) {
+    logError("❌ 未提供有效的 YUNYU_TOKEN");
     return "❌ 未提供有效的 YUNYU_TOKEN";
   }
 
-  let aggregatedLog = [];
+  const tasks = tokens.map(async (token) => {
+    const ry = new RainYun(token);
+    await ry.signin();
+    await ry.query();
+    return ry.getLog();
+  });
 
-  for (const token of tokenList) {
-    try {
-      const ry = new RainYun(token);
-      await ry.signin();
-      await ry.query();
-
-      aggregatedLog.push({
-        log: ry.getLog(),
-      });
-    } catch (error) {
-      logger.logError(
-        `Token ${token.slice(0, 4)}**** 处理失败: ${error.message}`
-      );
-    }
-  }
-
-  const result = aggregatedLog.map((entry) => `${entry.log}`).join("\n");
-
-  return result || "【雨云】：无任务执行结果";
+  const results = await Promise.allSettled(tasks);
+  return (
+    results
+      .map((result) =>
+        result.status === "fulfilled"
+          ? result.value
+          : `任务失败，原因: ${
+              result.reason?.message || result.reason || "未知错误"
+            }`
+      )
+      .join("\n") || "【雨云】：无任务执行结果"
+  );
 };
