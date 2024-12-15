@@ -1,6 +1,11 @@
-const axios = require("axios");
+const { request } = require("./request");
 
-// 识别wps验证码函数，根据模式（mo）和验证码图片数据（code）
+/**
+ * 识别 WPS 验证码函数，根据模式（mo）和验证码图片数据（code）
+ * @param {String} mo 识别模式
+ * @param {String} code 验证码图片数据
+ * @returns {Promise<String|null>} 编码后的结果或 null
+ */
 async function wps_identify(mo, code) {
   // 校验 mo 是否是有效的模式
   if (!mo || typeof mo !== "string" || !/^\w+$/.test(mo)) {
@@ -18,11 +23,17 @@ async function wps_identify(mo, code) {
   };
 
   try {
-    // 发送 POST 请求
-    const response = await axios.post(url, code, { headers });
+    // 使用封装的 request 函数发送 POST 请求
+    const response = await request(null, "POST", url, code, {
+      headers,
+    });
 
-    // 检查返回的数据结构是否包含 midpoints
-    if (response.data && Array.isArray(response.data.midpoints)) {
+    // 检查请求是否成功
+    if (
+      response.success &&
+      response.data &&
+      Array.isArray(response.data.midpoints)
+    ) {
       const result = response.data.midpoints
         .map((arr) => arr.join(","))
         .join("|");
