@@ -1,3 +1,4 @@
+const axios = require("axios");
 const base64 = require('js-base64').Base64;
 const { wps_identify } = require("../utils/code");
 const { logInfo, logError } = require("../utils/logger");
@@ -70,7 +71,7 @@ class Wps {
       });
       const code = await wps_identify(
         type,
-        Base64.encode(new Uint8Array(response))
+        base64.encode(new Uint8Array(response))
       );
       return type === "pc" ? this.submitCheckin(code) : this.submitSpace(code);
     } catch (error) {
