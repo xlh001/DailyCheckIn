@@ -3,13 +3,6 @@
 # 脚本名称: install-deps.sh
 # 功能: 自动检测 yarn、pnpm、npm 并按优先级安装依赖，如未找到则自动安装它们
 
-# 获取脚本所在目录
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-
-# 切换到脚本所在目录
-cd "$SCRIPT_DIR" || exit 1
-echo "🔹 当前目录: $SCRIPT_DIR"
-
 # 自动安装包管理器的函数
 install_package_manager() {
     local pm=$1
