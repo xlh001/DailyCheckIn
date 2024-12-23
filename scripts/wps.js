@@ -76,14 +76,16 @@ class Wps {
         "GET",
         url,
         {},
-        3,
-        1000,
-        "arraybuffer"
+        {
+          maxRetries: 3,
+          retryDelay: 1000,
+          timeout: 5000,
+          responseType: "arraybuffer",
+        }
       );
-      const code = await wps_identify(
-        type,
-        Base64.encode(new Uint8Array(response.data))
-      );
+      const imgarr = new Uint8Array(response.data);
+      const base64String = Base64.encode(imgarr);
+      const code = await wps_identify(type, base64String);
       return this.submitTask(type, code);
     } catch (error) {
       logError(`获取验证码失败: ${error.message}`);

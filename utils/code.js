@@ -37,7 +37,6 @@ async function wps_identify(mo, code) {
       const result = response.data.midpoints
         .map((arr) => arr.join(","))
         .join("|");
-
       console.log(result);
       return encodeURIComponent(result);
     } else {

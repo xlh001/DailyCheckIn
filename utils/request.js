@@ -186,13 +186,14 @@ async function request(session, method, url, data = {}, config = {}) {
     retryDelay = 2000,
     timeout = 5000,
     retryableStatusCodes = [408, 500, 502, 503, 504],
+    responseType = "json", // 默认 responseType
   } = config;
   let retries = 0;
   const axiosInstance = session || axios.create();
 
   while (retries <= maxRetries) {
     try {
-      const res = await axiosInstance({ method, url, data, timeout });
+      const res = await axiosInstance({ method, url, data, timeout ,responseType});
       return handleResponseStatus(res, method, url);
     } catch (error) {
       const errorDetails = extractErrorDetails(error, method, url);
