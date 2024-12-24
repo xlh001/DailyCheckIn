@@ -14,7 +14,7 @@ async function wps_identify(mo, code) {
   }
 
   // 根据模式构建 URL
-  const url = `https://wsp.xlh001.xyz/inference_wps_${mo}`;
+  const url = `https://wps.xlh001.xyz/inference_wps_${mo}`;
 
   // 请求头设置
   const headers = {
